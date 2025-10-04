@@ -1,3 +1,9 @@
+/* Deploying
+git add .
+git commit -m "Update homepage or styles"
+git push
+*/
+
 const API_KEY = "AIzaSyDWo6FSuYMYpgbT0zJoIm-njIeHZ8Jox-U";
 const API_KEYS = [
   "AIzaSyD4uE_vY5PZiKBYsxm4x3Wwd0vnY_5hKBc",
@@ -125,7 +131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           8. Use ± where appropriate and preserve parentheses for clarity.
 
           Example output:
-          
+
           The volume of a sphere is given by the formula:
           $$V = \frac{4}{3}\pi r^3$$
           where $r$ is the radius of the sphere.
