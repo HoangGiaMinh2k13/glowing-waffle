@@ -4,11 +4,6 @@ git commit -m "Update homepage or styles"
 git push
 */
 
-const API_KEY = "AIzaSyDWo6FSuYMYpgbT0zJoIm-njIeHZ8Jox-U";
-const API_KEYS = [
-  "AIzaSyD4uE_vY5PZiKBYsxm4x3Wwd0vnY_5hKBc",
-  "AIzaSyDWo6FSuYMYpgbT0zJoIm-njIeHZ8Jox-U"
-];
 const MODEL = "gemini-2.5-flash";
 const BOT_NAME = "Chạt bọt";
 const PAGE_TITLE = `Let's chat to ${BOT_NAME}`;
@@ -17,36 +12,19 @@ const PAGE_HEADING = `Your ${BOT_NAME}`;
 let docs = window.docs || [];
 let currentKeyIndex = 0; // Starting from the first API key
 
-async function callGeminiAPI(contents) {
-  for (let i = 0; i < API_KEYS.length; i++) {
-    const key = API_KEYS[currentKeyIndex];
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${key}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ contents })
-        }
-      );
+async function callGeminiAPI(contents, question, chatHistory, relevantChunks) {
+  const response = await fetch("http://localhost:3000/api/ask", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      question,
+      chatHistory,
+      relevantChunks
+    })
+  });
 
-      const data = await response.json();
-
-      // If response is valid, return it
-      if (response.ok && data?.candidates?.length) {
-        return data;
-      }
-
-      // If error, try the next key
-      console.warn("API key failed:", key, data);
-      currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
-
-    } catch (err) {
-      console.error("Request error with key:", key, err);
-      currentKeyIndex = (currentKeyIndex + 1) % API_KEYS.length;
-    }
-  }
-  throw new Error("All API keys failed");
+  if (!response.ok) throw new Error("Backend request failed");
+  return await response.json(); // Backend returns { answer: ... }
 }
 
 function retrieveRelevantChunks(question, maxChunks = 3) {
