@@ -1,9 +1,17 @@
 import express from "express";
 import axios from "axios";
 import dotenv from "dotenv";
+import cors from "cors";
 
 dotenv.config();
 const app = express();
+
+app.use(cors({
+  origin: "https://hoanggiaminh2k13.github.io",
+  methods: ["GET", "POST"],
+  allowedHeaders: ["Content-Type"],
+}));
+
 app.use(express.json());
 
 const API_KEYS = [
