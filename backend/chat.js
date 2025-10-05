@@ -6,11 +6,13 @@ import cors from "cors";
 dotenv.config();
 const app = express();
 
-app.use(cors({
-  origin: "https://hoanggiaminh2k13.github.io",
-  methods: ["GET", "POST"],
-  allowedHeaders: ["Content-Type"],
-}));
+app.use((req, res, next) => {
+  res.header("Access-Control-Allow-Origin", "https://hoanggiaminh2k13.github.io");
+  res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type");
+  if (req.method === "OPTIONS") return res.sendStatus(200); // respond to preflight
+  next();
+});
 
 app.use(express.json());
 
@@ -114,3 +116,18 @@ Here are some math references given to you:\n\n${relevantChunks.join("\n\n")}\n\
 app.listen(3000, () =>
   console.log("✅ Backend running on http://localhost:3000")
 );
+
+// --- Keep Render awake ---
+const axios = (await import("axios")).default;
+
+const PING_URL = "https://glowing-waffle.onrender.com"; // your own backend URL
+const PING_INTERVAL = 14 * 60 * 1000; // every 14 minutes (Render sleeps after 15+ min idle)
+
+setInterval(async () => {
+  try {
+    await axios.get(PING_URL);
+    console.log("🔁 Pinged self to stay awake");
+  } catch (err) {
+    console.error("Ping failed:", err.message);
+  }
+}, PING_INTERVAL);
