@@ -12,7 +12,7 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Headers", "Content-Type");
   if (req.method === "OPTIONS") return res.sendStatus(200); // respond to preflight
   next();
-});
+});1
 
 app.use(express.json());
 
@@ -116,9 +116,6 @@ Here are some math references given to you:\n\n${relevantChunks.join("\n\n")}\n\
 app.listen(3000, () =>
   console.log("✅ Backend running on http://localhost:3000")
 );
-
-// --- Keep Render awake ---
-const axios = (await import("axios")).default;
 
 const PING_URL = "https://glowing-waffle.onrender.com"; // your own backend URL
 const PING_INTERVAL = 14 * 60 * 1000; // every 14 minutes (Render sleeps after 15+ min idle)

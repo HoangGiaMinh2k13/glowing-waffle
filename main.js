@@ -2,7 +2,6 @@
 git add .
 git commit -m "Update homepage or styles"
 git push
-
 */
 
 const MODEL = "gemini-2.5-flash";
