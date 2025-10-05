@@ -134,7 +134,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const data = await callGeminiAPI(contents, question, chatHistory, relevant);
       console.log("Gemini response:", data);
 
-      let answer = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+      let answer = data?.answer || data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
 
       console.log("Raw Gemini answer:", answer);
 
