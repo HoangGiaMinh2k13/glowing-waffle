@@ -113,6 +113,10 @@ Here are some math references given to you:\n\n${relevantChunks.join("\n\n")}\n\
   }
 });
 
+app.get("/", (req, res) => {
+  res.send("Server is alive and running!");
+});
+
 app.listen(3000, () =>
   console.log("✅ Backend running on http://localhost:3000")
 );
