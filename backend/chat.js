@@ -9,6 +9,8 @@ app.use(express.json());
 const API_KEYS = [
   process.env.GEMINI_KEY_1,
   process.env.GEMINI_KEY_2,
+  process.env.GEMINI_KEY_3,
+  process.env.GEMINI_KEY_4,
 ];
 let currentKeyIndex = 0;
 
