@@ -13,7 +13,7 @@ let docs = window.docs || [];
 let currentKeyIndex = 0; // Starting from the first API key
 
 async function callGeminiAPI(contents, question, chatHistory, relevantChunks) {
-  const response = await fetch("http://localhost:3000/api/ask", {
+  const response = await fetch("https://glowing-waffle.onrender.com/api/ask", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
