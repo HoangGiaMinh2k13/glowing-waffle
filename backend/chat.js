@@ -25,7 +25,7 @@ const API_KEYS = [
 let currentKeyIndex = 0;
 
 const MODEL = "gemini-2.5-flash";
-const BOT_NAME = "Chạt bọt";
+const BOT_NAME = "MathemAItics";
 
 function preprocessMath(answer) {
   if (!answer) return "";

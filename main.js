@@ -5,7 +5,7 @@ git push
 */
 
 const MODEL = "gemini-2.5-flash";
-const BOT_NAME = "Chạt bọt";
+const BOT_NAME = "MathemAItics";
 const PAGE_TITLE = `Let's chat to ${BOT_NAME}`;
 const PAGE_HEADING = `Your ${BOT_NAME}`;
 
