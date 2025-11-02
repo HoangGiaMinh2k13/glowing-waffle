@@ -89,7 +89,7 @@ where $r$ is the radius of the sphere.
 
 Here are some math references given to you:\n\n${relevantChunks.join("\n\n")}\n\n
 `;
-
+    console.log(context);
     const contents = [
       ...chatHistory.map(msg => ({
         role: msg.role,

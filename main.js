@@ -12,6 +12,27 @@ const PAGE_HEADING = `Your ${BOT_NAME}`;
 let docs = window.docs || [];
 let currentKeyIndex = 0; // Starting from the first API key
 
+// === Typing animation ===
+function showTyping() {
+  if (document.querySelector(".typing-indicator")) return; // prevent duplicates
+
+  const typingDiv = document.createElement("div");
+  typingDiv.className = "msg bot";
+  typingDiv.innerHTML = `
+    <div class="typing-indicator">
+      <span></span><span></span><span></span>
+    </div>
+  `;
+  document.getElementById("chatbox").appendChild(typingDiv);
+  typingDiv.scrollIntoView({ behavior: "smooth" });
+}
+
+function hideTyping() {
+  const typing = document.querySelector(".typing-indicator");
+  if (typing) typing.parentElement.remove();
+}
+
+// === Gemini API ===
 async function callGeminiAPI(contents, question, chatHistory, relevantChunks) {
   const response = await fetch("https://glowing-waffle.onrender.com/api/ask", {
     method: "POST",
@@ -27,6 +48,7 @@ async function callGeminiAPI(contents, question, chatHistory, relevantChunks) {
   return await response.json(); // Backend returns { answer: ... }
 }
 
+// === Local document retriever ===
 function retrieveRelevantChunks(question, maxChunks = 3) {
   if (!docs.length) return [];
 
@@ -51,26 +73,20 @@ function retrieveRelevantChunks(question, maxChunks = 3) {
     .filter(s => s.trim().length > 0 && s.score > 0);
 }
 
+// === Math preprocessor ===
 function preprocessMath(answer) {
   if (!answer) return "";
 
-  // Replace √(...) → \sqrt{...}
   answer = answer.replace(/√\((.*?)\)/g, "\\sqrt{$1}");
-
-  // Replace a / b → \frac{a}{b} (basic numbers/variables)
   answer = answer.replace(/([0-9a-zA-Z()]+)\s*\/\s*([0-9a-zA-Z()]+)/g, "\\frac{$1}{$2}");
-
-  // π → \pi
   answer = answer.replace(/π/g, "\\pi");
-
-  // Superscripts ², ³ remain as-is
-  // Optional: convert ^2 or ^3 to LaTeX if you want
   answer = answer.replace(/([a-zA-Z0-9])\^2/g, "$1^2");
   answer = answer.replace(/([a-zA-Z0-9])\^3/g, "$1^3");
 
   return answer;
 }
 
+// === Main logic ===
 document.addEventListener("DOMContentLoaded", async () => {
   document.title = PAGE_TITLE;
   document.getElementById("pageHeading").innerText = PAGE_HEADING;
@@ -92,28 +108,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     chatHistory.push({ role: "user", content: question });
     if (chatHistory.length > 12) chatHistory.shift();
 
+    // 👇 Show typing bubble
+    showTyping();
+
     try {
       const relevant = retrieveRelevantChunks(question, 3);
       const context = relevant.length
         ? `
         You are an AI chatbot specified about mathematics named ${BOT_NAME}.
         Guidelines:
-          1. Use \frac{numerator}{denominator} for fractions instead of a/b.
-          2. Use \sqrt{...} for square roots, and \sqrt[3]{...} for cube roots.
+          1. Use \\frac{numerator}{denominator} for fractions instead of a/b.
+          2. Use \\sqrt{...} for square roots, and \\sqrt[3]{...} for cube roots.
           3. Use ^2, ^3, etc., for powers.
-          4. Use \pi for π.
+          4. Use \\pi for π.
           5. Keep text sentences outside math formulas untouched.
           6. Inline formulas can be wrapped in $...$, and multiline or display formulas in $$...$$.
           7. For calculations like (5 ± √(25 + 24)) / 4, produce: 
-            $$x = \frac{5 \pm \sqrt{25 + 24}}{4}$$
+             $$x = \\frac{5 \\pm \\sqrt{25 + 24}}{4}$$
           8. Use ± where appropriate and preserve parentheses for clarity.
 
-          Example output:
+        Example output:
 
-          The volume of a sphere is given by the formula:
-          $$V = \frac{4}{3}\pi r^3$$
-          where $r$ is the radius of the sphere.
-        
+        The volume of a sphere is given by the formula:
+        $$V = \\frac{4}{3}\\pi r^3$$
+        where $r$ is the radius of the sphere.
+      
         Here are some math references given to you:\n\n${relevant.join("\n\n")}\n\n
         `
         : "";
@@ -125,22 +144,17 @@ document.addEventListener("DOMContentLoaded", async () => {
         })),
         {
           role: "user",
-          parts: [{
-            text: (context ? context + "\n" : "") + "User question: " + question
-          }]
+          parts: [{ text: (context ? context + "\n" : "") + "User question: " + question }]
         }
       ];
 
       const data = await callGeminiAPI(contents, question, chatHistory, relevant);
-      console.log("Gemini response:", data);
+
+      // 👇 Hide typing once response arrives
+      hideTyping();
 
       let answer = data?.answer || data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
-
-      console.log("Raw Gemini answer:", answer);
-
       answer = preprocessMath(answer);
-
-      console.log("Processed Gemini answer:", answer);
 
       chatHistory.push({ role: "model", content: answer });
       if (chatHistory.length > 12) chatHistory.shift();
@@ -163,6 +177,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
     } catch (err) {
+      // 👇 Hide typing on error too
+      hideTyping();
       chatbox.innerHTML += `<div class="error"><b>Error:</b> ${err.message}</div>`;
     }
 
