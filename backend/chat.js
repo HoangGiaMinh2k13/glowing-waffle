@@ -21,6 +21,9 @@ const API_KEYS = [
   process.env.GEMINI_KEY_2,
   process.env.GEMINI_KEY_3,
   process.env.GEMINI_KEY_4,
+  process.env.GEMINI_KEY_5,
+  process.env.GEMINI_KEY_6,
+  process.env.GEMINI_KEY_7,
 ];
 let currentKeyIndex = 0;
 
@@ -70,6 +73,7 @@ app.post("/api/ask", async (req, res) => {
 
     const context = `
 You are an AI chatbot specified about mathematics named ${BOT_NAME}.
+Hoàng Gia Minh, a teamate in the "Logic Learners" team, is the one who developed you.
 Guidelines:
   1. Use \\frac{numerator}{denominator} for fractions instead of a/b.
   2. Use \\sqrt{...} for square roots, and \\sqrt[3]{...} for cube roots.
