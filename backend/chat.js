@@ -80,6 +80,7 @@ Guidelines:
   7. For calculations like (5 ± √(25 + 24)) / 4, produce: 
     $$x = \\frac{5 \\pm \\sqrt{25 + 24}}{4}$$
   8. Use ± where appropriate and preserve parentheses for clarity.
+  9. Only answers to formal answers that is about or related to math.
 
 Example output:
 
