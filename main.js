@@ -9,16 +9,17 @@ const BOT_NAME = "MathemAItics";
 const PAGE_TITLE = `Let's chat to ${BOT_NAME}`;
 const PAGE_HEADING = `Your ${BOT_NAME}`;
 
+// === Document setup ===
 Object.defineProperty(window, "docs", {
   value: [],
   writable: true
 });
 
-let currentKeyIndex = 0; // Starting from the first API key
+let currentKeyIndex = 0;
 
 // === Typing animation ===
 function showTyping() {
-  if (document.querySelector(".typing-indicator")) return; // prevent duplicates
+  if (document.querySelector(".typing-indicator")) return;
 
   const typingDiv = document.createElement("div");
   typingDiv.className = "msg bot";
@@ -27,8 +28,9 @@ function showTyping() {
       <span></span><span></span><span></span>
     </div>
   `;
-  document.getElementById("chatbox").appendChild(typingDiv);
-  typingDiv.scrollIntoView({ behavior: "smooth" });
+  const chatbox = document.getElementById("chatbox");
+  chatbox.appendChild(typingDiv);
+  chatbox.scrollTo({ top: chatbox.scrollHeight, behavior: "smooth" });
 }
 
 function hideTyping() {
@@ -38,21 +40,21 @@ function hideTyping() {
 
 // === Gemini API ===
 async function callGeminiAPI(contents, question, chatHistory, relevantChunks) {
-  const response = await fetch("https://glowing-waffle.onrender.com/api/ask", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      question,
-      chatHistory,
-      relevantChunks
-    })
-  });
-
-  if (!response.ok) throw new Error("Backend request failed");
-  return await response.json(); // Backend returns { answer: ... }
+  try {
+    const response = await fetch("https://glowing-waffle.onrender.com/api/ask", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ question, chatHistory, relevantChunks })
+    });
+    if (!response.ok) throw new Error(`Backend request failed: ${response.status}`);
+    return await response.json();
+  } catch (err) {
+    console.error("❌ API error:", err);
+    throw err;
+  }
 }
 
-// === Local document retriever ===
+// === Document retriever ===
 function retrieveRelevantChunks(question, maxChunks = 3) {
   if (!window.docs.length) return [];
 
@@ -63,82 +65,78 @@ function retrieveRelevantChunks(question, maxChunks = 3) {
   );
 
   const scored = chunks.map(({ id, chunk }) => {
-    let score = 0;
-    qWords.forEach(w => {
-      if (w && chunk.toLowerCase().includes(w)) score++;
-    });
+    const lower = chunk.toLowerCase();
+    const score = qWords.reduce((acc, w) => acc + (w && lower.includes(w) ? 1 : 0), 0);
     return { id, chunk, score };
   });
 
   return scored
+    .filter(s => s.score > 0)
     .sort((a, b) => b.score - a.score)
     .slice(0, maxChunks)
-    .map(s => `File ${s.id}: ${s.chunk.trim().slice(0, 800)}`)
-    .filter(s => s.trim().length > 0 && s.score > 0);
+    .map(s => `File ${s.id}: ${s.chunk.trim().slice(0, 800)}`);
 }
 
 // === Math preprocessor ===
-function preprocessMath(answer) {
-  if (!answer) return "";
-
-  answer = answer.replace(/√\((.*?)\)/g, "\\sqrt{$1}");
-  answer = answer.replace(/([0-9a-zA-Z()]+)\s*\/\s*([0-9a-zA-Z()]+)/g, "\\frac{$1}{$2}");
-  answer = answer.replace(/π/g, "\\pi");
-  answer = answer.replace(/([a-zA-Z0-9])\^2/g, "$1^2");
-  answer = answer.replace(/([a-zA-Z0-9])\^3/g, "$1^3");
-
-  return answer;
+function preprocessMath(answer = "") {
+  return answer
+    .replace(/√\((.*?)\)/g, "\\sqrt{$1}")
+    .replace(/([0-9a-zA-Z()]+)\s*\/\s*([0-9a-zA-Z()]+)/g, "\\frac{$1}{$2}")
+    .replace(/π/g, "\\pi")
+    .replace(/([a-zA-Z0-9])\^2/g, "$1^2")
+    .replace(/([a-zA-Z0-9])\^3/g, "$1^3");
 }
 
 // === Main logic ===
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ main.js loaded");
   document.title = PAGE_TITLE;
   document.getElementById("pageHeading").innerText = PAGE_HEADING;
 
   const chatbox = document.getElementById("chatbox");
   const questionInput = document.getElementById("question");
   const sendBtn = document.getElementById("sendBtn");
-
   let chatHistory = [];
 
   async function sendMessage() {
     const question = questionInput.value.trim();
     if (!question) return;
 
+    // User bubble
     chatbox.innerHTML += `<div class="msg user"><b>You:</b> ${question}</div>`;
     questionInput.value = "";
-    chatbox.scrollTop = chatbox.scrollHeight;
+    chatbox.scrollTo({ top: chatbox.scrollHeight, behavior: "smooth" });
 
     chatHistory.push({ role: "user", content: question });
     if (chatHistory.length > 12) chatHistory.shift();
 
-    // 👇 Show typing bubble
     showTyping();
 
     try {
       const relevant = retrieveRelevantChunks(question, 3);
       const context = relevant.length
         ? `
-        You are an AI chatbot specified about mathematics named ${BOT_NAME}.
-        Guidelines:
-          1. Use \\frac{numerator}{denominator} for fractions instead of a/b.
-          2. Use \\sqrt{...} for square roots, and \\sqrt[3]{...} for cube roots.
-          3. Use ^2, ^3, etc., for powers.
-          4. Use \\pi for π.
-          5. Keep text sentences outside math formulas untouched.
-          6. Inline formulas can be wrapped in $...$, and multiline or display formulas in $$...$$.
-          7. For calculations like (5 ± √(25 + 24)) / 4, produce: 
-             $$x = \\frac{5 \\pm \\sqrt{25 + 24}}{4}$$
-          8. Use ± where appropriate and preserve parentheses for clarity.
+You are an AI chatbot specified about mathematics named ${BOT_NAME}.
+Guidelines:
+  1. Use \\frac{numerator}{denominator} for fractions instead of a/b.
+  2. Use \\sqrt{...} for square roots, and \\sqrt[3]{...} for cube roots.
+  3. Use ^2, ^3, etc., for powers.
+  4. Use \\pi for π.
+  5. Keep text sentences outside math formulas untouched.
+  6. Inline formulas can be wrapped in $...$, and multiline or display formulas in $$...$$.
+  7. For calculations like (5 ± √(25 + 24)) / 4, produce: 
+    $$x = \\frac{5 \\pm \\sqrt{25 + 24}}{4}$$
+  8. Use ± where appropriate and preserve parentheses for clarity.
+  9. Only answers to formal answers that is about or related to math.
 
-        Example output:
+Example output:
 
-        The volume of a sphere is given by the formula:
-        $$V = \\frac{4}{3}\\pi r^3$$
-        where $r$ is the radius of the sphere.
-      
-        Here are some math references given to you:\n\n${relevant.join("\n\n")}\n\n
-        `
+The volume of a sphere is given by the formula:
+$$V = \\frac{4}{3}\\pi r^3$$
+where $r$ is the radius of the sphere.
+
+Here are some math references given to you:\n\n${relevantChunks.join("\n\n")}\n\n
+`
         : "";
 
       const contents = [
@@ -153,11 +151,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       ];
 
       const data = await callGeminiAPI(contents, question, chatHistory, relevant);
-
-      // 👇 Hide typing once response arrives
       hideTyping();
 
-      let answer = data?.answer || data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+      let answer =
+        data?.answer ||
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "No response.";
       answer = preprocessMath(answer);
 
       chatHistory.push({ role: "model", content: answer });
@@ -180,13 +179,12 @@ document.addEventListener("DOMContentLoaded", async () => {
         throwOnError: false
       });
 
+      chatbox.scrollTo({ top: chatbox.scrollHeight, behavior: "smooth" });
     } catch (err) {
-      // 👇 Hide typing on error too
       hideTyping();
-      chatbox.innerHTML += `<div class="error"><b>Error:</b> ${err.message}</div>`;
+      chatbox.innerHTML += `<div class="msg bot error"><b>Error:</b> ${err.message}</div>`;
+      chatbox.scrollTo({ top: chatbox.scrollHeight, behavior: "smooth" });
     }
-
-    chatbox.scrollTop = chatbox.scrollHeight;
   }
 
   sendBtn.addEventListener("click", sendMessage);

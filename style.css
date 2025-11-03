@@ -127,8 +127,8 @@ button:hover {
 }
 
 .typing-indicator span {
-  width: 8px;
-  height: 8px;
+  width: 4px;
+  height: 4px;
   background-color: #000000;
   border-radius: 50%;
   animation: blink 1.4s infinite both;
