@@ -9,7 +9,11 @@ const BOT_NAME = "MathemAItics";
 const PAGE_TITLE = `Let's chat to ${BOT_NAME}`;
 const PAGE_HEADING = `Your ${BOT_NAME}`;
 
-let docs = window.docs || [];
+Object.defineProperty(window, "docs", {
+  value: [],
+  writable: true
+});
+
 let currentKeyIndex = 0; // Starting from the first API key
 
 // === Typing animation ===
@@ -50,11 +54,11 @@ async function callGeminiAPI(contents, question, chatHistory, relevantChunks) {
 
 // === Local document retriever ===
 function retrieveRelevantChunks(question, maxChunks = 3) {
-  if (!docs.length) return [];
+  if (!window.docs.length) return [];
 
   const qWords = question.toLowerCase().split(/\W+/);
 
-  const chunks = docs.flatMap(doc =>
+  const chunks = window.docs.flatMap(doc =>
     doc.text.split(/\n\s*\n/).map(ch => ({ id: doc.id, chunk: ch }))
   );
 
