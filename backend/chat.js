@@ -92,9 +92,9 @@ The volume of a sphere is given by the formula:
 $$V = \\frac{4}{3}\\pi r^3$$
 where $r$ is the radius of the sphere.
 
-Here are some math references given to you:\n\n${relevantChunks.join("\n\n")}\n\n
+Here are some math references given to you:\n\n${relevantChunks.join("\n\n")}
 `;
-    console.log(context);
+    console.log("Received relevantChunks:", relevantChunks);
     const contents = [
       ...chatHistory.map(msg => ({
         role: msg.role,
