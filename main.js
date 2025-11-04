@@ -39,7 +39,7 @@ function hideTyping() {
 }
 
 // === Gemini API ===
-async function callGeminiAPI(contents, question, chatHistory, relevantChunks) {
+async function callGeminiAPI(question, chatHistory, relevantChunks) {
   try {
     const response = await fetch("https://glowing-waffle.onrender.com/api/ask", {
       method: "POST",
@@ -135,7 +135,7 @@ The volume of a sphere is given by the formula:
 $$V = \\frac{4}{3}\\pi r^3$$
 where $r$ is the radius of the sphere.
 
-Here are some math references given to you:\n\n${relevantChunks.join("\n\n")}\n\n
+Here are some math references given to you:\n\n${relevant.join("\n\n")}\n\n
 `
         : "";
 
