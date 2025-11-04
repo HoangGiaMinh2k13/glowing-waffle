@@ -150,7 +150,7 @@ Here are some math references given to you:\n\n${relevant.join("\n\n")}\n\n
         }
       ];
 
-      const data = await callGeminiAPI(contents, question, chatHistory, relevant);
+      const data = await callGeminiAPI(question, chatHistory, relevant);
       hideTyping();
 
       let answer =
