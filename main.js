@@ -10,10 +10,9 @@ const PAGE_TITLE = `Let's chat to ${BOT_NAME}`;
 const PAGE_HEADING = `Your ${BOT_NAME}`;
 
 // === Document setup ===
-Object.defineProperty(window, "docs", {
-  value: [],
-  writable: true
-});
+if (!Array.isArray(window.docs)) {
+  window.docs = [];
+}
 
 let currentKeyIndex = 0;
 
