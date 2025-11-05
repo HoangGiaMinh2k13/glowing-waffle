@@ -124,10 +124,8 @@ app.post("/api/ask", async (req, res) => {
 
     if (!Array.isArray(chatHistory)) chatHistory = [];
     if (!Array.isArray(relevantChunks)) relevantChunks = [];
-
-    console.log("Received question:", question.substring(0, 120));
-    console.log("chatHistory length:", chatHistory.length);
-    console.log("Received relevantChunks count:", relevantChunks.length);
+    
+    console.log("Received relevantChunks count:", relevantChunks);
 
     // build context including the relevant chunks (if any)
     const refsText =
