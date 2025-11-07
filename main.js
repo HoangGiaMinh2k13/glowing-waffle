@@ -159,7 +159,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const botContent = botDiv.querySelector(".bot-content");
 
       // Animate typing (render after complete)
-      await typeTextHTML(botContent, formattedAnswer, 10);
+      await typeTextHTML(botContent, formattedAnswer, 100);
 
       renderMathInElement(botDiv, {
         delimiters: [
