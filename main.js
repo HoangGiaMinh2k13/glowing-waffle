@@ -145,12 +145,6 @@ Guidelines:
   8. Use ± where appropriate and preserve parentheses for clarity.
   9. Only answers to formal answers that is about or related to math.
 
-Example output:
-
-The volume of a sphere is given by the formula:
-$$V = \\frac{4}{3}\\pi r^3$$
-where $r$ is the radius of the sphere.
-
 Here are some math references given to you:\n\n${relevant.join("\n\n")}\n\n
 `
         : "";
