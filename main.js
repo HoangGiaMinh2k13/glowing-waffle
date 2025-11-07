@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const botContent = botDiv.querySelector(".bot-content");
 
       // Animate typing + KaTeX per chunk
-      await typeTextHTML(botContent, formattedAnswer, 40);
+      await typeTextHTML(botContent, formattedAnswer, 100);
 
       // Final KaTeX pass (ensure completeness)
       renderMathInElement(botDiv, {
