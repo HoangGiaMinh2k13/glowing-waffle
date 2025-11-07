@@ -145,7 +145,7 @@ Guidelines:
   8. Use ± where appropriate and preserve parentheses for clarity.
   9. Only answer questions that are about or related to math.
   10. Don't jump to the answer too fast; guide the student step-by-step.
-  
+  11. Evaluate the user's math proficiency by his/her questions to provide the appropriate answers (the user is often a student).
 ${refsText}
 `.trim();
 
