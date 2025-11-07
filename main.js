@@ -10,16 +10,13 @@ const PAGE_TITLE = `Let's chat to ${BOT_NAME}`;
 const PAGE_HEADING = `Your ${BOT_NAME}`;
 
 // === Document setup ===
-if (!Array.isArray(window.docs)) {
-  window.docs = [];
-}
+if (!Array.isArray(window.docs)) window.docs = [];
 
 let currentKeyIndex = 0;
 
 // === Typing indicator ===
 function showTyping() {
   if (document.querySelector(".typing-indicator")) return;
-
   const typingDiv = document.createElement("div");
   typingDiv.className = "msg bot";
   typingDiv.innerHTML = `
@@ -35,28 +32,6 @@ function showTyping() {
 function hideTyping() {
   const typing = document.querySelector(".typing-indicator");
   if (typing) typing.parentElement.remove();
-}
-
-// === Typewriter effect ===
-async function typeTextHTML(container, html, speed = 10) {
-  return new Promise(resolve => {
-    const temp = document.createElement("div");
-    temp.innerHTML = html;
-    const nodes = Array.from(temp.childNodes);
-    let i = 0;
-
-    function showNext() {
-      if (i < nodes.length) {
-        container.appendChild(nodes[i].cloneNode(true));
-        i++;
-        setTimeout(showNext, speed);
-      } else {
-        resolve();
-      }
-    }
-
-    showNext();
-  });
 }
 
 // === Gemini API ===
@@ -108,6 +83,37 @@ function preprocessMath(answer = "") {
     .replace(/([a-zA-Z0-9])\^3/g, "$1^3");
 }
 
+// === Smooth streaming: Markdown + KaTeX per chunk ===
+async function typeTextWithMath(container, text, speed = 30) {
+  const chunks = text
+    .split(/(\n{2,}|(?=\n[-*] )|(?=\n\d+\. ))/)
+    .map(c => c.trim())
+    .filter(Boolean);
+
+  for (const chunk of chunks) {
+    const md = marked.parse(chunk);
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = md;
+    container.appendChild(tempDiv);
+
+    // Render math immediately for this chunk
+    await new Promise(requestAnimationFrame);
+    renderMathInElement(tempDiv, {
+      delimiters: [
+        { left: "$$", right: "$$", display: true },
+        { left: "$", right: "$", display: false },
+        { left: "\\(", right: "\\)", display: false },
+        { left: "\\[", right: "\\]", display: true }
+      ],
+      throwOnError: false
+    });
+
+    // Animate scroll + pause for realism
+    container.scrollIntoView({ behavior: "smooth", block: "end" });
+    await new Promise(res => setTimeout(res, speed * 6));
+  }
+}
+
 // === Main logic ===
 document.addEventListener("DOMContentLoaded", () => {
   console.log("✅ main.js loaded");
@@ -135,7 +141,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const relevant = retrieveRelevantChunks(question, 3);
-
       const data = await callGeminiAPI(question, chatHistory, relevant);
       hideTyping();
 
@@ -144,13 +149,10 @@ document.addEventListener("DOMContentLoaded", () => {
         data?.candidates?.[0]?.content?.parts?.[0]?.text ||
         "No response.";
       answer = preprocessMath(answer);
-
       chatHistory.push({ role: "model", content: answer });
       if (chatHistory.length > 12) chatHistory.shift();
 
-      const formattedAnswer = marked.parse(answer);
-
-      // === Create bot bubble and animate ===
+      // === Bot message container ===
       const botDiv = document.createElement("div");
       botDiv.className = "msg bot";
       botDiv.innerHTML = `<b>${BOT_NAME}:</b><div class="bot-content"></div>`;
@@ -158,18 +160,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const botContent = botDiv.querySelector(".bot-content");
 
-      // Animate typing (render after complete)
-      await typeTextHTML(botContent, formattedAnswer, 1000);
-
-      renderMathInElement(botDiv, {
-        delimiters: [
-          { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false },
-          { left: "\\(", right: "\\)", display: false },
-          { left: "\\[", right: "\\]", display: true }
-        ],
-        throwOnError: false
-      });
+      // Stream chunk-by-chunk rendering
+      await typeTextWithMath(botContent, answer, 30);
 
       chatbox.scrollTo({ top: chatbox.scrollHeight, behavior: "smooth" });
     } catch (err) {

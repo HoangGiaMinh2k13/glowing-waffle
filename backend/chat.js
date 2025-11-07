@@ -147,7 +147,9 @@ Guidelines:
   9. Only answer questions that are about or related to math.
   10. Don't jump to the answer too fast; guide the student step-by-step.
   11. Evaluate the user's math proficiency by his/her questions to provide the appropriate answers (the user is often a student).
-${refsText}
+  12. Don't talk anything about the references until you are asked to do so.
+
+  ${refsText}
 `.trim();
 
     // Build contents for Gemini. Use chatHistory if present, then the user prompt including context.
