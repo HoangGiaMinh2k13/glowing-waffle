@@ -38,19 +38,24 @@ function hideTyping() {
 }
 
 // === Typewriter effect ===
-async function typeText(element, text, speed = 20) {
+async function typeTextHTML(container, html, speed = 10) {
   return new Promise(resolve => {
+    const temp = document.createElement("div");
+    temp.innerHTML = html;
+    const nodes = Array.from(temp.childNodes);
     let i = 0;
-    function typeChar() {
-      if (i < text.length) {
-        element.innerHTML += text.charAt(i);
+
+    function showNext() {
+      if (i < nodes.length) {
+        container.appendChild(nodes[i].cloneNode(true));
         i++;
-        setTimeout(typeChar, speed);
+        setTimeout(showNext, speed);
       } else {
         resolve();
       }
     }
-    typeChar();
+
+    showNext();
   });
 }
 
@@ -130,24 +135,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       const relevant = retrieveRelevantChunks(question, 3);
-      const context = relevant.length
-        ? `
-You are an AI chatbot specified about mathematics named ${BOT_NAME}.
-Guidelines:
-  1. Use \\frac{numerator}{denominator} for fractions instead of a/b.
-  2. Use \\sqrt{...} for square roots, and \\sqrt[3]{...} for cube roots.
-  3. Use ^2, ^3, etc., for powers.
-  4. Use \\pi for π.
-  5. Keep text sentences outside math formulas untouched.
-  6. Inline formulas can be wrapped in $...$, and multiline or display formulas in $$...$$.
-  7. For calculations like (5 ± √(25 + 24)) / 4, produce: 
-    $$x = \\frac{5 \\pm \\sqrt{25 + 24}}{4}$$
-  8. Use ± where appropriate and preserve parentheses for clarity.
-  9. Only answers to formal answers that is about or related to math.
-
-Here are some math references given to you:\n\n${relevant.join("\n\n")}\n\n
-`
-        : "";
 
       const data = await callGeminiAPI(question, chatHistory, relevant);
       hideTyping();
@@ -172,7 +159,7 @@ Here are some math references given to you:\n\n${relevant.join("\n\n")}\n\n
       const botContent = botDiv.querySelector(".bot-content");
 
       // Animate typing (render after complete)
-      await typeText(botContent, formattedAnswer, 15);
+      await typeTextHTML(botContent, formattedAnswer, 10);
 
       renderMathInElement(botDiv, {
         delimiters: [
