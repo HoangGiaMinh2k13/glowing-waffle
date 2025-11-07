@@ -38,7 +38,7 @@ function hideTyping() {
 }
 
 // === Incremental Typewriter (KaTeX + Markdown per chunk) ===
-async function typeTextHTML(container, html, speed = 40) {
+async function typeTextHTML(container, html, speed) {
   return new Promise(resolve => {
     const temp = document.createElement("div");
     temp.innerHTML = html;
@@ -172,7 +172,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const botContent = botDiv.querySelector(".bot-content");
 
       // Animate typing + KaTeX per chunk
-      await typeTextHTML(botContent, formattedAnswer, 100);
+      await typeTextHTML(botContent, formattedAnswer, 500);
 
       // Final KaTeX pass (ensure completeness)
       renderMathInElement(botDiv, {
