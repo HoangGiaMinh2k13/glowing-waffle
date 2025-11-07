@@ -16,7 +16,7 @@ if (!Array.isArray(window.docs)) {
 
 let currentKeyIndex = 0;
 
-// === Typing animation ===
+// === Typing indicator ===
 function showTyping() {
   if (document.querySelector(".typing-indicator")) return;
 
@@ -35,6 +35,23 @@ function showTyping() {
 function hideTyping() {
   const typing = document.querySelector(".typing-indicator");
   if (typing) typing.parentElement.remove();
+}
+
+// === Typewriter effect ===
+async function typeText(element, text, speed = 20) {
+  return new Promise(resolve => {
+    let i = 0;
+    function typeChar() {
+      if (i < text.length) {
+        element.innerHTML += text.charAt(i);
+        i++;
+        setTimeout(typeChar, speed);
+      } else {
+        resolve();
+      }
+    }
+    typeChar();
+  });
 }
 
 // === Gemini API ===
@@ -138,17 +155,6 @@ Here are some math references given to you:\n\n${relevant.join("\n\n")}\n\n
 `
         : "";
 
-      const contents = [
-        ...chatHistory.map(msg => ({
-          role: msg.role,
-          parts: [{ text: msg.content }]
-        })),
-        {
-          role: "user",
-          parts: [{ text: (context ? context + "\n" : "") + "User question: " + question }]
-        }
-      ];
-
       const data = await callGeminiAPI(question, chatHistory, relevant);
       hideTyping();
 
@@ -163,10 +169,16 @@ Here are some math references given to you:\n\n${relevant.join("\n\n")}\n\n
 
       const formattedAnswer = marked.parse(answer);
 
+      // === Create bot bubble and animate ===
       const botDiv = document.createElement("div");
       botDiv.className = "msg bot";
-      botDiv.innerHTML = `<b>${BOT_NAME}:</b><div class="bot-content">${formattedAnswer}</div>`;
+      botDiv.innerHTML = `<b>${BOT_NAME}:</b><div class="bot-content"></div>`;
       chatbox.appendChild(botDiv);
+
+      const botContent = botDiv.querySelector(".bot-content");
+
+      // Animate typing (render after complete)
+      await typeText(botContent, formattedAnswer, 15);
 
       renderMathInElement(botDiv, {
         delimiters: [
